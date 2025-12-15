@@ -43,16 +43,13 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// Add EF Core InMemory DB
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseInMemoryDatabase("CantinaDb"));
 
-// Add Identity
 builder.Services.AddIdentity<User, IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 
-// JWT authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -75,7 +72,6 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// Swagger in development
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
