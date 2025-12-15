@@ -11,15 +11,16 @@ namespace CantinaManager.Data
         public AppDbContext(DbContextOptions<AppDbContext> options)
             : base(options) { }
 
-        public DbSet<Task> Tasks => Set<Task>();
+        public DbSet<UserTask> UserTasks => Set<UserTask>();
+        public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
 
-            builder.Entity<Task>()
+            builder.Entity<UserTask>()
                 .HasOne(t => t.User)
-                .WithMany(u => u.Tasks)
+                .WithMany(u => u.UserTasks)
                 .HasForeignKey(t => t.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
