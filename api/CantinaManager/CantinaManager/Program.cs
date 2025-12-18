@@ -9,8 +9,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System;
 using System.Text;
+
+DotNetEnv.Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,6 +46,18 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+// CORS for frontend connection
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("FrontendPolicy", policy =>
+    {
+        policy.WithOrigins(builder.Configuration["Frontend:Url"] ?? "http://localhost:3000")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseInMemoryDatabase("CantinaDb"));
 
@@ -72,6 +85,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
+// Register your services
 builder.Services.AddScoped<ITokenService, JwtService>();
 builder.Services.AddScoped<IRepository, Repository>();
 builder.Services.AddScoped<IEmailService, EmailService>();
@@ -79,6 +93,7 @@ builder.Services.AddScoped<UserVerificationService>();
 
 var app = builder.Build();
 
+// Middleware pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -86,9 +101,13 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("FrontendPolicy");
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+// If you have a request logging middleware
+app.UseRequestLogging();
 
 app.MapControllers();
 
