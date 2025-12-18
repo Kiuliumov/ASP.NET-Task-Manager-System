@@ -1,5 +1,4 @@
-﻿using CantinaManager.Services.EmailService;
-using System.Net;
+﻿using System.Net;
 using System.Net.Mail;
 
 namespace CantinaManager.Services
