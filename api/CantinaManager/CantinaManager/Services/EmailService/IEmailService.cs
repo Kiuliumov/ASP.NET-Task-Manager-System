@@ -1,4 +1,4 @@
-﻿namespace CantinaManager.Services
+﻿namespace CantinaManager.Services.EmailService
 {
     public interface IEmailService
     {
