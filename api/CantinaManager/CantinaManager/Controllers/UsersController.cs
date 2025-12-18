@@ -1,5 +1,4 @@
-﻿using CantinaManager.Auth;
-using CantinaManager.Data;
+﻿using CantinaManager.Data;
 using CantinaManager.Models;
 using CantinaManager.Services.TokenService;
 using Microsoft.AspNetCore.Identity;
@@ -13,9 +12,9 @@ namespace CantinaManager.Controllers
     {
         private readonly IRepository _repository;
         private readonly UserManager<User> _userManager;
-        private readonly IJwtService _jwtService;
+        private readonly ITokenService _jwtService;
 
-        public UsersController(IRepository repository, UserManager<User> userManager, IJwtService jwtService)
+        public UsersController(IRepository repository, UserManager<User> userManager, ITokenService jwtService)
         {
             _repository = repository;
             _userManager = userManager;
