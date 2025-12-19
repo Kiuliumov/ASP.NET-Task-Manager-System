@@ -6,17 +6,14 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using DotNetEnv;
 using System.Text;
 
 
-Env.Load();
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Configuration.AddEnvironmentVariables();
-
-Console.WriteLine(builder.Configuration["JWT_KEY"]);
 builder.Services.AddControllers();
+
+
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -86,6 +83,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
+
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
+builder.Services.AddScoped<ITokenService, JwtService>();
+
+
 builder.Services.AddScoped<ITokenService, JwtService>();
 builder.Services.AddScoped<IRepository, Repository>();
 builder.Services.AddScoped<IEmailService, EmailService>();
@@ -104,7 +106,6 @@ app.UseCors("FrontendPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Logging custom middleware
 app.UseRequestLogging();
 
 app.MapControllers();
