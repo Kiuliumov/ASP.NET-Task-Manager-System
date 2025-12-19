@@ -1,9 +1,9 @@
 ﻿using CantinaManager.Models;
-using CantinaManager.Services.EmailService;
+using CantinaManager.Services;
 using Microsoft.AspNetCore.Identity;
 using System.Web;
 
-namespace CantinaManager.Services.Verification
+namespace CantinaManager.Services
 {
     public class UserVerificationService
     {
