@@ -1,9 +1,6 @@
 using CantinaManager.Data;
 using CantinaManager.Models;
 using CantinaManager.Services;
-using CantinaManager.Services.EmailService;
-using CantinaManager.Services.TokenService;
-using CantinaManager.Services.Verification;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +13,6 @@ DotNetEnv.Env.Load();
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
-
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -41,16 +37,17 @@ builder.Services.AddSwaggerGen(options =>
                     Id = "Bearer"
                 }
             },
-            new string[] {}
+            Array.Empty<string>()
         }
     });
 });
 
+var frontendUrl = builder.Configuration["Frontend:Url"] ?? "https://localhost:3000";
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("FrontendPolicy", policy =>
     {
-        policy.WithOrigins(builder.Configuration["Frontend:Url"])
+        policy.WithOrigins(frontendUrl)
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -73,7 +70,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-
             ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "TestIssuer",
             ValidAudience = builder.Configuration["Jwt:Audience"] ?? "TestAudience",
             IssuerSigningKey = new SymmetricSecurityKey(
@@ -99,12 +95,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("FrontendPolicy");
-
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.UseRequestLogging();
-
 app.MapControllers();
-
 app.Run();
