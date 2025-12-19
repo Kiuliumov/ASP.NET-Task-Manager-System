@@ -23,7 +23,7 @@ namespace CantinaManager.Services
             var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             var encodedToken = HttpUtility.UrlEncode(token);
 
-            var frontendUrl = _config["Frontend:Url"] ?? "https://localhost:3000";
+            var frontendUrl = _config["FRONTEND_URL"] ?? "https://localhost:3000";
             var verificationLink = $"{frontendUrl}/verify-email?userId={user.Id}&token={encodedToken}";
 
             var subject = "Verify your email";
