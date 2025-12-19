@@ -50,7 +50,6 @@ namespace CantinaManager.Controllers
             var user = await _repository.GetUserByIdAsync(id);
             if (user == null) return NotFound("User not found");
 
-            // Allow user to see their own info or admins to see anyone
             var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var isAdmin = User.IsInRole("Administrator");
             if (currentUserId != id && !isAdmin) return Forbid();
@@ -98,7 +97,6 @@ namespace CantinaManager.Controllers
             return NoContent();
         }
 
-        // ---------- DELETE ----------
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(string id)
