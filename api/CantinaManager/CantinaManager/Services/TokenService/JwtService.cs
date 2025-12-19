@@ -25,6 +25,8 @@ namespace CantinaManager.Services
 
         public async Task<string> GenerateAccessTokenAsync(User user)
         {
+            if (user == null) throw new ArgumentNullException(nameof(user));
+
             var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id),
@@ -42,14 +44,22 @@ namespace CantinaManager.Services
                 claims.Add(new Claim(ClaimTypes.Role, roleName));
             }
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JWT_KEY"]!));
+            var keyString = _config["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key is missing");
+            var issuer = _config["Jwt:Issuer"] ?? throw new InvalidOperationException("Jwt:Issuer is missing");
+            var audience = _config["Jwt:Audience"] ?? throw new InvalidOperationException("Jwt:Audience is missing");
+            var expireMinutesString = _config["Jwt:ExpireMinutes"] ?? "60";
+
+            if (!int.TryParse(expireMinutesString, out int expireMinutes))
+                expireMinutes = 60;
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyString));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
-                issuer: _config["JWT_ISSUER"],
-                audience: _config["JWT_AUDIENCE"],
+                issuer: issuer,
+                audience: audience,
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(int.Parse(_config["JWT_EXPIREMINUTES"]!)),
+                expires: DateTime.UtcNow.AddMinutes(expireMinutes),
                 signingCredentials: creds
             );
 
