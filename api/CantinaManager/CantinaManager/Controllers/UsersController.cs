@@ -1,13 +1,16 @@
 ﻿using CantinaManager.Data;
 using CantinaManager.Models;
 using CantinaManager.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace CantinaManager.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize] 
     public class UsersController : ControllerBase
     {
         private readonly IRepository _repository;
@@ -21,7 +24,9 @@ namespace CantinaManager.Controllers
             _jwtService = jwtService;
         }
 
+
         [HttpGet]
+        [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> GetAllUsers()
         {
             var users = await _repository.GetAllUsersAsync();
@@ -45,6 +50,11 @@ namespace CantinaManager.Controllers
             var user = await _repository.GetUserByIdAsync(id);
             if (user == null) return NotFound("User not found");
 
+            // Allow user to see their own info or admins to see anyone
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isAdmin = User.IsInRole("Administrator");
+            if (currentUserId != id && !isAdmin) return Forbid();
+
             return Ok(new
             {
                 user.Id,
@@ -57,7 +67,9 @@ namespace CantinaManager.Controllers
             });
         }
 
+
         [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> CreateUser([FromBody] User user)
         {
             if (user == null) return BadRequest("Invalid user data");
@@ -66,11 +78,16 @@ namespace CantinaManager.Controllers
             return CreatedAtAction(nameof(GetUserById), new { id = createdUser.Id }, createdUser);
         }
 
+
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(string id, [FromBody] User updatedUser)
         {
             var existingUser = await _repository.GetUserByIdAsync(id);
             if (existingUser == null) return NotFound("User not found");
+
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isAdmin = User.IsInRole("Administrator");
+            if (currentUserId != id && !isAdmin) return Forbid();
 
             existingUser.FullName = updatedUser.FullName;
             existingUser.ProfilePictureUrl = updatedUser.ProfilePictureUrl;
@@ -81,14 +98,24 @@ namespace CantinaManager.Controllers
             return NoContent();
         }
 
+        // ---------- DELETE ----------
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(string id)
         {
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isAdmin = User.IsInRole("Administrator");
+
+            // Only admins or the user themselves can delete
+            if (currentUserId != id && !isAdmin) return Forbid();
+
             await _repository.DeleteUserAsync(id);
             return NoContent();
         }
 
+
         [HttpPost("register")]
+        [AllowAnonymous]
         public async Task<IActionResult> Register([FromBody] RegisterDto dto)
         {
             var existingUser = await _userManager.FindByNameAsync(dto.Username);
@@ -120,6 +147,7 @@ namespace CantinaManager.Controllers
         }
 
         [HttpPost("login")]
+        [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
             var user = await _userManager.FindByNameAsync(dto.Username);
